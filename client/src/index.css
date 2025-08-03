@@ -1,0 +1,148 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: 0 0% 100%;
+  --foreground: 20 14.3% 4.1%;
+  --muted: 60 4.8% 95.9%;
+  --muted-foreground: 25 5.3% 44.7%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 20 14.3% 4.1%;
+  --card: 0 0% 100%;
+  --card-foreground: 20 14.3% 4.1%;
+  --border: 20 5.9% 90%;
+  --input: 20 5.9% 90%;
+  --primary: 354 100% 68%;
+  --primary-foreground: 60 9.1% 97.8%;
+  --secondary: 173 100% 33%;
+  --secondary-foreground: 0 0% 98%;
+  --accent: 60 4.8% 95.9%;
+  --accent-foreground: 24 9.8% 10%;
+  --destructive: 0 84.2% 60.2%;
+  --destructive-foreground: 60 9.1% 97.8%;
+  --ring: 20 14.3% 4.1%;
+  --radius: 0.5rem;
+  
+  /* Role-specific colors */
+  --customer: 354 100% 68%;
+  --owner: 173 100% 33%;
+  --admin: 240 3.7% 15.9%;
+  --partner: 41 100% 50%;
+  
+  /* Status colors */
+  --success: 120 100% 30%;
+  --error: 0 100% 50%;
+  --warning: 36 100% 50%;
+  --info: 200 100% 50%;
+  
+  /* Chart colors */
+  --chart-1: 354 100% 68%;
+  --chart-2: 173 100% 33%;
+  --chart-3: 240 3.7% 15.9%;
+  --chart-4: 41 100% 50%;
+  --chart-5: 261 100% 65%;
+}
+
+.dark {
+  --background: 240 10% 3.9%;
+  --foreground: 0 0% 98%;
+  --muted: 240 3.7% 15.9%;
+  --muted-foreground: 240 5% 64.9%;
+  --popover: 240 10% 3.9%;
+  --popover-foreground: 0 0% 98%;
+  --card: 240 10% 3.9%;
+  --card-foreground: 0 0% 98%;
+  --border: 240 3.7% 15.9%;
+  --input: 240 3.7% 15.9%;
+  --primary: 354 100% 68%;
+  --primary-foreground: 0 0% 98%;
+  --secondary: 173 100% 33%;
+  --secondary-foreground: 0 0% 98%;
+  --accent: 240 3.7% 15.9%;
+  --accent-foreground: 0 0% 98%;
+  --destructive: 0 62.8% 30.6%;
+  --destructive-foreground: 0 0% 98%;
+  --ring: 240 4.9% 83.9%;
+  --radius: 0.5rem;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply font-sans antialiased bg-neutral-light text-neutral-dark;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-heading;
+  }
+}
+
+@layer components {
+  .customer-text {
+    color: hsl(var(--customer));
+  }
+  
+  .customer-bg {
+    background-color: hsl(var(--customer));
+  }
+  
+  .customer-border {
+    border-color: hsl(var(--customer));
+  }
+  
+  .owner-text {
+    color: hsl(var(--owner));
+  }
+  
+  .owner-bg {
+    background-color: hsl(var(--owner));
+  }
+  
+  .owner-border {
+    border-color: hsl(var(--owner));
+  }
+  
+  .admin-text {
+    color: hsl(var(--admin));
+  }
+  
+  .admin-bg {
+    background-color: hsl(var(--admin));
+  }
+  
+  .admin-border {
+    border-color: hsl(var(--admin));
+  }
+  
+  .partner-text {
+    color: hsl(var(--partner));
+  }
+  
+  .partner-bg {
+    background-color: hsl(var(--partner));
+  }
+  
+  .partner-border {
+    border-color: hsl(var(--partner));
+  }
+  
+  .header-role-customer {
+    @apply bg-[hsl(var(--customer))];
+  }
+  
+  .header-role-owner {
+    @apply bg-[hsl(var(--owner))];
+  }
+  
+  .header-role-admin {
+    @apply bg-[hsl(var(--admin))];
+  }
+  
+  .header-role-partner {
+    @apply bg-[hsl(var(--partner))];
+  }
+}
