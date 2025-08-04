@@ -2,7 +2,16 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { setupAuth } from "./auth";
-import { insertFoodItemSchema, insertOrderSchema, owners, customers, orders, orderItems, partners, restaurants } from "@shared/schema";
+import {
+  insertFoodItemSchema,
+  insertOrderSchema,
+  owners,
+  customers,
+  orders,
+  orderItems,
+  partners,
+  restaurants,
+} from "@shared/schema";
 import { db } from "./db";
 import { eq, and, isNull, desc } from "drizzle-orm";
 import { ZodError } from "zod";
@@ -27,11 +36,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const id = parseInt(req.params.id);
       const restaurant = await storage.getRestaurant(id);
-      
+
       if (!restaurant) {
         return res.status(404).json({ message: "Restaurant not found" });
       }
-      
+
       res.json(restaurant);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch restaurant" });
@@ -57,16 +66,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const restaurantId = parseInt(req.params.id);
       const restaurant = await storage.getRestaurantByOwnerId(req.user.id);
-      
+
       if (!restaurant || restaurant.id !== restaurantId) {
-        return res.status(403).json({ message: "You don't own this restaurant" });
+        return res
+          .status(403)
+          .json({ message: "You don't own this restaurant" });
       }
 
       const validatedData = insertFoodItemSchema.parse({
         ...req.body,
-        restaurantId
+        restaurantId,
       });
-      
+
       const foodItem = await storage.createFoodItem(validatedData);
       res.status(201).json(foodItem);
     } catch (error) {
@@ -101,16 +112,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         default:
           return res.status(403).json({ message: "Invalid role" });
       }
-      
+
       res.json(orders);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch orders" });
     }
   });
-
-
-
-
 
   // Admin routes
   app.get("/api/admin/restaurants", async (req, res) => {
@@ -135,18 +142,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const restaurantId = parseInt(req.params.id);
       const { status, reason } = req.body;
-      
-      const restaurant = await storage.updateRestaurantStatus(restaurantId, status, reason);
-      
+
+      const restaurant = await storage.updateRestaurantStatus(
+        restaurantId,
+        status,
+        reason
+      );
+
       // If restaurant is approved (open), also activate the owner's user account
       if (["open", "closed", "busy"].includes(status)) {
         // Get the owner's user ID and activate their account
-        const [owner] = await db.select().from(owners).where(eq(owners.id, restaurant.ownerId));
+        const [owner] = await db
+          .select()
+          .from(owners)
+          .where(eq(owners.id, restaurant.ownerId));
         if (owner) {
           await storage.updateUserStatus(owner.userId, "active");
         }
       }
-      
+
       res.json(restaurant);
     } catch (error) {
       if (error instanceof Error) {
@@ -178,7 +192,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = parseInt(req.params.id);
       const { status, reason } = req.body;
-      
+
       const user = await storage.updateUserStatus(userId, status, reason);
       res.json(user);
     } catch (error) {
@@ -200,7 +214,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!userWithDetails) {
         return res.status(404).json({ message: "User not found" });
       }
-      
+
       res.json(userWithDetails);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch profile" });
@@ -214,16 +228,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
     try {
       const { name, phone, address, age, gender, profilePicture } = req.body;
-      
+
       const updatedUser = await storage.updateUserProfile(req.user.id, {
         name,
         phone,
         address,
         age,
         gender,
-        profilePicture
+        profilePicture,
       });
-      
+
       res.json(updatedUser);
     } catch (error) {
       if (error instanceof Error) {
@@ -244,7 +258,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!restaurant) {
         return res.status(404).json({ message: "Restaurant not found" });
       }
-      
+
       res.json(restaurant);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch restaurant" });
@@ -258,7 +272,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
     try {
       const { name, location, photo, category } = req.body;
-      
+
       const restaurant = await storage.getRestaurantByOwnerId(req.user.id);
       if (!restaurant) {
         return res.status(404).json({ message: "Restaurant not found" });
@@ -268,9 +282,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         name,
         location,
         photo,
-        category
+        category,
       });
-      
+
       res.json(updatedRestaurant);
     } catch (error) {
       if (error instanceof Error) {
@@ -298,7 +312,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
     try {
       const { name, description, price, photo, category } = req.body;
-      
+
       const restaurant = await storage.getRestaurantByOwnerId(req.user.id);
       if (!restaurant) {
         return res.status(404).json({ message: "Restaurant not found" });
@@ -310,9 +324,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         description,
         price: parseInt(price),
         photo,
-        category
+        category,
       });
-      
+
       res.status(201).json(foodItem);
     } catch (error) {
       if (error instanceof Error) {
@@ -330,15 +344,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const foodItemId = parseInt(req.params.id);
       const { name, description, price, photo, category } = req.body;
-      
+
       const updatedFoodItem = await storage.updateFoodItem(foodItemId, {
         name,
         description,
         price: parseInt(price),
         photo,
-        category
+        category,
       });
-      
+
       res.json(updatedFoodItem);
     } catch (error) {
       if (error instanceof Error) {
@@ -374,15 +388,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
     try {
       const { name, location, photo, category } = req.body;
-      
+
       // Check if restaurant already exists for this owner
-      const existingRestaurant = await storage.getRestaurantByOwnerId(req.user.id);
+      const existingRestaurant = await storage.getRestaurantByOwnerId(
+        req.user.id
+      );
       if (existingRestaurant) {
-        return res.status(400).json({ message: "Restaurant already exists for this owner" });
+        return res
+          .status(400)
+          .json({ message: "Restaurant already exists for this owner" });
       }
 
       // Get the owner ID from the owners table
-      const [owner] = await db.select().from(owners).where(eq(owners.userId, req.user.id));
+      const [owner] = await db
+        .select()
+        .from(owners)
+        .where(eq(owners.userId, req.user.id));
       if (!owner) {
         return res.status(400).json({ message: "Owner profile not found" });
       }
@@ -392,9 +413,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         name,
         location,
         photo,
-        category
+        category,
       });
-      
+
       res.status(201).json(restaurant);
     } catch (error) {
       if (error instanceof Error) {
@@ -412,20 +433,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const restaurantId = parseInt(req.params.id);
       const { name, location, photo, category } = req.body;
-      
+
       // Verify ownership
       const restaurant = await storage.getRestaurantByOwnerId(req.user.id);
       if (!restaurant || restaurant.id !== restaurantId) {
-        return res.status(403).json({ message: "You don't own this restaurant" });
+        return res
+          .status(403)
+          .json({ message: "You don't own this restaurant" });
       }
 
       const updatedRestaurant = await storage.updateRestaurant(restaurantId, {
         name,
         location,
         photo,
-        category
+        category,
       });
-      
+
       res.json(updatedRestaurant);
     } catch (error) {
       if (error instanceof Error) {
@@ -442,41 +465,62 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
 
     try {
-      const { restaurantId, items, total, deliveryFee, address, phone, paymentMethod } = req.body;
-      
+      const {
+        restaurantId,
+        items,
+        total,
+        deliveryFee,
+        address,
+        phone,
+        paymentMethod,
+      } = req.body;
 
-      
       // Validate required fields manually since insertOrderSchema expects partnerId which is optional
-      if (!restaurantId || total === undefined || total === null || deliveryFee === undefined || deliveryFee === null || !address || !phone || !paymentMethod) {
+      if (
+        !restaurantId ||
+        total === undefined ||
+        total === null ||
+        deliveryFee === undefined ||
+        deliveryFee === null ||
+        !address ||
+        !phone ||
+        !paymentMethod
+      ) {
         const missing = [];
         if (!restaurantId) missing.push("restaurantId");
         if (total === undefined || total === null) missing.push("total");
-        if (deliveryFee === undefined || deliveryFee === null) missing.push("deliveryFee");
+        if (deliveryFee === undefined || deliveryFee === null)
+          missing.push("deliveryFee");
         if (!address) missing.push("address");
         if (!phone) missing.push("phone");
         if (!paymentMethod) missing.push("paymentMethod");
-        
-        return res.status(400).json({ 
-          message: `Validation error: Required fields missing: ${missing.join(', ')}`
+
+        return res.status(400).json({
+          message: `Validation error: Required fields missing: ${missing.join(
+            ", "
+          )}`,
         });
       }
-      
+
       // Validate payment method enum
       if (!["cash", "esewa", "khalti"].includes(paymentMethod)) {
-        return res.status(400).json({ 
-          message: `Validation error: paymentMethod must be one of: cash, esewa, khalti`
+        return res.status(400).json({
+          message: `Validation error: paymentMethod must be one of: cash, esewa, khalti`,
         });
       }
-      
+
       // Get customer ID
-      const [customer] = await db.select().from(customers).where(eq(customers.userId, req.user.id));
+      const [customer] = await db
+        .select()
+        .from(customers)
+        .where(eq(customers.userId, req.user.id));
       if (!customer) {
         return res.status(400).json({ message: "Customer profile not found" });
       }
 
       // Ensure delivery fee is at least 50
       const finalDeliveryFee = Math.max(parseInt(deliveryFee) || 50, 50);
-      const finalTotal = parseInt(total) || (finalDeliveryFee);
+      const finalTotal = parseInt(total) || finalDeliveryFee;
 
       console.log("Creating order with data:", {
         customerId: customer.id,
@@ -485,20 +529,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
         deliveryFee: finalDeliveryFee,
         address: address.trim(),
         phone: phone.trim(),
-        paymentMethod: paymentMethod
+        paymentMethod: paymentMethod,
       });
 
       // Create order with validated data
-      const [order] = await db.insert(orders).values({
-        customerId: customer.id,
-        restaurantId: parseInt(restaurantId),
-        total: finalTotal,
-        deliveryFee: finalDeliveryFee,
-        address: address.trim(),
-        phone: phone.trim(),
-        paymentMethod: paymentMethod as any,
-        status: "pending"
-      }).returning();
+      const [order] = await db
+        .insert(orders)
+        .values({
+          customerId: customer.id,
+          restaurantId: parseInt(restaurantId),
+          total: finalTotal,
+          deliveryFee: finalDeliveryFee,
+          address: address.trim(),
+          phone: phone.trim(),
+          paymentMethod: paymentMethod as any,
+          status: "pending",
+        })
+        .returning();
 
       // Create order items
       if (items && items.length > 0) {
@@ -507,7 +554,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             orderId: order.id,
             foodItemId: parseInt(item.foodItemId),
             quantity: parseInt(item.quantity),
-            price: parseInt(item.price)
+            price: parseInt(item.price),
           };
           console.log("Inserting order item:", orderItemData);
           await db.insert(orderItems).values(orderItemData);
@@ -530,14 +577,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
 
     try {
-      const [customer] = await db.select().from(customers).where(eq(customers.userId, req.user.id));
-      if (!customer) {
-        return res.status(400).json({ message: "Customer profile not found" });
-      }
-
-      const ordersList = await storage.getCustomerOrders(customer.id);
+      // Pass the user ID directly - getCustomerOrders will find the customer internally
+      const ordersList = await storage.getCustomerOrders(req.user.id);
       res.json(ordersList);
     } catch (error) {
+      console.error("Error fetching customer orders:", error);
       res.status(500).json({ message: "Failed to fetch orders" });
     }
   });
@@ -583,7 +627,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .innerJoin(restaurants, eq(orders.restaurantId, restaurants.id))
         .where(and(eq(orders.status, "ready"), isNull(orders.partnerId)))
         .orderBy(desc(orders.updatedAt));
-      
+
       res.json(ordersList);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch available orders" });
@@ -611,11 +655,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const orderId = parseInt(req.params.id);
       const { status, reason } = req.body;
-      
+
       // For partners accepting orders, we need to assign them to the order
       if (req.user.role === "partner" && status === "picked") {
         // Get partner ID from partners table
-        const [partner] = await db.select().from(partners).where(eq(partners.userId, req.user.id));
+        const [partner] = await db
+          .select()
+          .from(partners)
+          .where(eq(partners.userId, req.user.id));
         if (!partner) {
           return res.status(400).json({ message: "Partner profile not found" });
         }
@@ -623,10 +670,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Update order with partner assignment and status
         const [updatedOrder] = await db
           .update(orders)
-          .set({ 
+          .set({
             status: status as any,
             partnerId: partner.id,
-            updatedAt: new Date()
+            updatedAt: new Date(),
           })
           .where(eq(orders.id, orderId))
           .returning();
@@ -635,13 +682,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       } else {
         // Use existing storage method for other roles
         const updatedOrder = await storage.updateOrderStatus(
-          orderId, 
-          status, 
-          req.user.id, 
-          req.user.role, 
+          orderId,
+          status,
+          req.user.id,
+          req.user.role,
           reason
         );
-        
+
         res.json(updatedOrder);
       }
     } catch (error) {
@@ -685,8 +732,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Failed to update password" });
     }
   });
-
-
 
   // Create HTTP server
   const httpServer = createServer(app);
